@@ -8,16 +8,16 @@
 
 #import "Dot.h"
 
-
 @implementation Dot
 
-+(NSData *)dataFromDotFile: (NSURL *) dotFile
++(NSData *)dataFromDotFile: (NSURL *) dotFile format:(NSString *)format
 {
     NSPipe *pipe = [NSPipe pipe];
     NSTask *task = [[NSTask alloc] init];
     
     [task setLaunchPath: @"/usr/bin/env"];
-    [task setArguments: [NSArray arrayWithObjects: @"dot", [dotFile path], @"-Tpng", nil]];
+//    [task setArguments: [NSArray arrayWithObjects: @"dot", [dotFile path], @"-Tpng", @"-Kfdp", nil]];
+    [task setArguments: [NSArray arrayWithObjects: @"dot", [dotFile path], format, nil]];
     [task setStandardOutput: pipe];
     
     [task launch];

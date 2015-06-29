@@ -12,7 +12,7 @@
 @interface Dot : NSObject {
 }
 
-+(NSData *)dataFromDotFile: (NSURL *) dotFile;
++(NSData *)dataFromDotFile: (NSURL *) dotFile format:(NSString *)format;
 
 
 @end
