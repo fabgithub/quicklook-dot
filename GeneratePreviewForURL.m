@@ -23,10 +23,12 @@ OSStatus GeneratePreviewForURL_with_svg_using_web(void *thisInterface, QLPreview
 static bool IsBigEnough(const char *szFile)
 {
     FILE *fp = fopen(szFile, "rb");
+    bool bRet = false;
     if(fp)
     {
         fseek(fp, 0, SEEK_END);
-        return ftell(fp) > (15 * 1024);
+        bRet = ftell(fp) > (15 * 1024);
+        fclose(fp);
     }
     return false;
 }
@@ -92,7 +94,7 @@ static void WriteSthToFile(const char *szFile, const char *szText)
     FILE *fp = fopen(szFile, "wb");
     if(fp)
     {
-        while(fp)
+        do
         {
             if(!szText)
             {
