@@ -20,17 +20,32 @@ OSStatus GeneratePreviewForURL_with_svg_using_web(void *thisInterface, QLPreview
                                                   CFURLRef url, CFStringRef contentTypeUTI,
                                                   CFDictionaryRef options);
 
+static void LogToFile(const char *szLog);
+static void WriteSthToFile(const char *szFile, const char *szText);
+
+#define LOG_FILE_LINE(log) do{ \
+        char szBuf[1000]; \
+        sprintf(szBuf, "%s (%d): %s: %s\n", __FILE__, __LINE__, __FUNCTION__, log); \
+        LogToFile(szBuf); \
+    }while(false)
+
 static bool IsBigEnough(const char *szFile)
 {
+//    LOG_FILE_LINE(szFile);
     FILE *fp = fopen(szFile, "rb");
     bool bRet = false;
     if(fp)
     {
         fseek(fp, 0, SEEK_END);
-        bRet = ftell(fp) > (15 * 1024);
+        int nSize = (int) ftell(fp);
+        bRet = nSize > (15 * 1024);
         fclose(fp);
+        
+//        char szNum[1200];
+//        sprintf(szNum, "size of '%s' is %d", szFile, (int) nSize);
+//        LOG_FILE_LINE(szNum);
     }
-    return false;
+    return bRet;
 }
 
 OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview, CFURLRef url, CFStringRef contentTypeUTI, CFDictionaryRef options)
@@ -89,43 +104,6 @@ OSStatus GeneratePreviewForURL_with_img(void *thisInterface, QLPreviewRequestRef
 	
 	return noErr;
 }
-static void WriteSthToFile(const char *szFile, const char *szText)
-{
-    FILE *fp = fopen(szFile, "wb");
-    if(fp)
-    {
-        do
-        {
-            if(!szText)
-            {
-                break;
-            }
-            int nLen = strlen(szText);
-            fwrite(szText, 1, nLen, fp);
-            break;
-        }while(false);
-        fclose(fp);
-    }
-}
-static void LogToFile(const char *szLog)
-{
-    const char *szFile = "/Volumes/Macintosh-HD/Test.localized/TrySomething/mylisp/dot/debug_log.txt";
-    FILE *fp = fopen(szFile, "ab");
-    if(!fp)
-    {
-        fp = fopen(szFile, "wb");
-    }
-    if(fp)
-    {
-        fwrite(szLog, 1, strlen(szLog), fp);
-        fclose(fp);
-    }
-}
-#define LOG_FILE_LINE(log) do{ \
-    char szBuf[1000]; \
-    sprintf(szBuf, "%s (%d): %s\n", __FILE__, __LINE__, log); \
-    LogToFile(szBuf); \
-    }while(false)
 
 OSStatus GeneratePreviewForURL_with_svg_using_web(void *thisInterface, QLPreviewRequestRef preview,
                                CFURLRef url, CFStringRef contentTypeUTI,
@@ -247,4 +225,36 @@ OSStatus GeneratePreviewForURL_with_svg(void *thisInterface, QLPreviewRequestRef
 void CancelPreviewGeneration(void* thisInterface, QLPreviewRequestRef preview)
 {
     // implement only if supported
+}
+static void WriteSthToFile(const char *szFile, const char *szText)
+{
+    FILE *fp = fopen(szFile, "wb");
+    if(fp)
+    {
+        do
+        {
+            if(!szText)
+            {
+                break;
+            }
+            int nLen = strlen(szText);
+            fwrite(szText, 1, nLen, fp);
+            break;
+        }while(false);
+        fclose(fp);
+    }
+}
+static void LogToFile(const char *szLog)
+{
+    const char *szFile = "/Volumes/Macintosh-HD/Test.localized/TrySomething/mylisp/dot/debug_log.txt";
+    FILE *fp = fopen(szFile, "ab");
+    if(!fp)
+    {
+        fp = fopen(szFile, "wb");
+    }
+    if(fp)
+    {
+        fwrite(szLog, 1, strlen(szLog), fp);
+        fclose(fp);
+    }
 }
