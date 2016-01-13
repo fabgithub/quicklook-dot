@@ -30,7 +30,7 @@ static bool IsBigEnough(const char *szFile)
     {
         fseek(fp, 0, SEEK_END);
         int nSize = (int) ftell(fp);
-        bRet = nSize > (15 * 1024);
+        bRet = nSize > (24 * 1024);
         fclose(fp);
         
 //        char szNum[1200];
@@ -73,7 +73,7 @@ OSStatus GeneratePreviewForURL_with_img(void *thisInterface, QLPreviewRequestRef
     if (QLPreviewRequestIsCancelled(preview))
         return noErr;
     LOG_FILE_LINE("");
-	NSData *imageData = [Dot dataFromDotFile: (__bridge NSURL *)url format:@"-Tpng"];
+	NSData *imageData = [Dot dataFromDotFile: (__bridge NSURL *)url format:@"-Tjpg"];
     char szBuf[100];
     sprintf(szBuf, "image data size is %d", (int)[imageData length]);
     LOG_FILE_LINE(szBuf);
@@ -90,7 +90,7 @@ OSStatus GeneratePreviewForURL_with_img(void *thisInterface, QLPreviewRequestRef
             LOG_FILE_LINE("");
 			
             CGDataProviderRef imgDataProvider = CGDataProviderCreateWithCFData ((__bridge CFDataRef)imageData);
-            CGImageRef image = CGImageCreateWithPNGDataProvider(imgDataProvider, NULL, true, kCGRenderingIntentDefault);
+            CGImageRef image = CGImageCreateWithJPEGDataProvider(imgDataProvider, NULL, true, kCGRenderingIntentDefault);
 			
             LOG_FILE_LINE("");
             CGContextDrawImage(cgContext,CGRectMake(0, 0, imageForSize.size.width, imageForSize.size.height), image);
@@ -201,14 +201,19 @@ OSStatus GeneratePreviewForURL_with_svg(void *thisInterface, QLPreviewRequestRef
     if (imageData)
     {
         LOG_FILE_LINE("");
-        NSDictionary *dic = [NSDictionary dictionary];
-        CFDictionaryRef properties = (__bridge CFDictionaryRef) dic;
+        // NSDictionary *dic = [NSDictionary dictionary];
+        // CFDictionaryRef properties = (__bridge CFDictionaryRef) dic;
         LOG_FILE_LINE("");
         
+        NSDictionary *previewProperties = @{
+                                            (NSString *)kQLPreviewPropertyWidthKey      : @1100,
+                                            (NSString *)kQLPreviewPropertyHeightKey     : @800
+                                            };
+
         QLPreviewRequestSetDataRepresentation(preview,
                                               (__bridge CFDataRef) imageData,
                                               kUTTypeHTML,
-                                              properties
+                                              (__bridge CFDictionaryRef) previewProperties
                                               );
         LOG_FILE_LINE("");
     }

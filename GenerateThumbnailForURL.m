@@ -14,7 +14,36 @@
 
 OSStatus GenerateThumbnailForURL(void *thisInterface, QLThumbnailRequestRef thumbnail, CFURLRef url, CFStringRef contentTypeUTI, CFDictionaryRef options, CGSize maxSize)
 {
-#if 1
+    NSData *imageData = [Dot dataFromDotFile: (__bridge NSURL *)url format:@"-Tsvg"];
+    if (imageData)
+    {
+        LOG_FILE_LINE("");
+        // NSDictionary *dic = [NSDictionary dictionary];
+        // CFDictionaryRef properties = (__bridge CFDictionaryRef) dic;
+        LOG_FILE_LINE("");
+        
+        NSDictionary *previewProperties = @{
+//                                              (NSString *)kQLPreviewPropertyWidthKey      : @1000,
+//                                              (NSString *)kQLPreviewPropertyHeightKey     : @800
+                                              };
+        
+        NSDictionary *thumbnailProperties = @{
+                                              };
+        
+        QLThumbnailRequestSetThumbnailWithDataRepresentation(thumbnail,
+                                              (__bridge CFDataRef) imageData,
+                                              kUTTypeScalableVectorGraphics,
+                                                             (__bridge CFDictionaryRef) previewProperties,
+                                                             (__bridge CFDictionaryRef) thumbnailProperties
+                                              );
+        LOG_FILE_LINE("");
+    }
+    
+    LOG_FILE_LINE("");
+    return noErr;
+
+
+#if 0
     LOG_FILE_LINE("");
     NSData *imageData = [Dot dataFromDotFile: (__bridge NSURL *)url format:@"-Tsvg"];
     NSData *data = imageData;
@@ -38,7 +67,7 @@ OSStatus GenerateThumbnailForURL(void *thisInterface, QLThumbnailRequestRef thum
         NSMutableString *html = [[NSMutableString alloc] init];
         [html appendString:@"<html>"];
         [html appendString:@"<meta http-equiv='Content-Type' content='text/html; charset=utf-8' />"];
-        [html appendString:@"<head></head><body><h1>Dot SVG preview</h1>"];
+        [html appendString:@"<head></head><body><h1>Dot SVG thumbnail</h1>"];
         
         [html appendString:svg];
         
