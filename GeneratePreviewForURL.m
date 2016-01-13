@@ -20,14 +20,6 @@ OSStatus GeneratePreviewForURL_with_svg_using_web(void *thisInterface, QLPreview
                                                   CFURLRef url, CFStringRef contentTypeUTI,
                                                   CFDictionaryRef options);
 
-static void LogToFile(const char *szLog);
-static void WriteSthToFile(const char *szFile, const char *szText);
-
-#define LOG_FILE_LINE(log) do{ \
-        char szBuf[1000]; \
-        sprintf(szBuf, "%s (%d): %s: %s\n", __FILE__, __LINE__, __FUNCTION__, log); \
-        LogToFile(szBuf); \
-    }while(false)
 
 static bool IsBigEnough(const char *szFile)
 {
@@ -77,30 +69,40 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
 }
 OSStatus GeneratePreviewForURL_with_img(void *thisInterface, QLPreviewRequestRef preview, CFURLRef url, CFStringRef contentTypeUTI, CFDictionaryRef options)
 {
-	
+    LOG_FILE_LINE("");
     if (QLPreviewRequestIsCancelled(preview))
         return noErr;
+    LOG_FILE_LINE("");
 	NSData *imageData = [Dot dataFromDotFile: (__bridge NSURL *)url format:@"-Tpng"];
+    char szBuf[100];
+    sprintf(szBuf, "image data size is %d", (int)[imageData length]);
+    LOG_FILE_LINE(szBuf);
 	NSImage *imageForSize = [[NSImage alloc] initWithData: imageData];
 	
+    LOG_FILE_LINE("");
 	CGSize canvasSize = CGSizeMake(imageForSize.size.width,imageForSize.size.height);
 
     @autoreleasepool {
         // Preview will be drawn in a vectorized context
+        LOG_FILE_LINE("");
         CGContextRef cgContext = QLPreviewRequestCreateContext(preview, *(CGSize *)&canvasSize, true, NULL);
         if(cgContext) { 
+            LOG_FILE_LINE("");
 			
             CGDataProviderRef imgDataProvider = CGDataProviderCreateWithCFData ((__bridge CFDataRef)imageData);
             CGImageRef image = CGImageCreateWithPNGDataProvider(imgDataProvider, NULL, true, kCGRenderingIntentDefault);
 			
+            LOG_FILE_LINE("");
             CGContextDrawImage(cgContext,CGRectMake(0, 0, imageForSize.size.width, imageForSize.size.height), image);
             QLPreviewRequestFlushContext(preview, cgContext);
             
             CFRelease(cgContext);
             CFRelease(image);
         } 
+        LOG_FILE_LINE("");
  
     }
+    LOG_FILE_LINE("");
 	
 	return noErr;
 }
@@ -198,26 +200,20 @@ OSStatus GeneratePreviewForURL_with_svg(void *thisInterface, QLPreviewRequestRef
     NSData *imageData = [Dot dataFromDotFile: (__bridge NSURL *)url format:@"-Tsvg"];
     if (imageData)
     {
-        NSString *svg = [[NSString alloc] initWithData:imageData encoding:NSASCIIStringEncoding];
+        LOG_FILE_LINE("");
+        NSDictionary *dic = [NSDictionary dictionary];
+        CFDictionaryRef properties = (__bridge CFDictionaryRef) dic;
+        LOG_FILE_LINE("");
         
-        NSMutableString *html = [[NSMutableString alloc] init];
-        [html appendString:@"<html>"];
-        [html appendString:@"<meta http-equiv='Content-Type' content='text/html; charset=utf-8' />"];
-        [html appendString:@"<head></head><body><h1>Dot SVG preview</h1>"];
-
-        [html appendString:svg];
-        
-        [html appendString:@"</body></html>"];
-        
-        CFDictionaryRef properties = (__bridge CFDictionaryRef) [NSDictionary dictionary];
-//        CFDictionaryRef properties = (__bridge CFDictionaryRef)@{(NSString *) kQLPreviewPropertyWidthKey: @50, (NSString *)kQLPreviewPropertyWidthKey: @50};
         QLPreviewRequestSetDataRepresentation(preview,
-                                              (__bridge CFDataRef)[html dataUsingEncoding:NSUTF8StringEncoding],
+                                              (__bridge CFDataRef) imageData,
                                               kUTTypeHTML,
                                               properties
                                               );
+        LOG_FILE_LINE("");
     }
     
+    LOG_FILE_LINE("");
     return noErr;
 }
 
@@ -226,7 +222,7 @@ void CancelPreviewGeneration(void* thisInterface, QLPreviewRequestRef preview)
 {
     // implement only if supported
 }
-static void WriteSthToFile(const char *szFile, const char *szText)
+void WriteSthToFile(const char *szFile, const char *szText)
 {
     FILE *fp = fopen(szFile, "wb");
     if(fp)
@@ -244,7 +240,7 @@ static void WriteSthToFile(const char *szFile, const char *szText)
         fclose(fp);
     }
 }
-static void LogToFile(const char *szLog)
+void LogToFile(const char *szLog)
 {
     const char *szFile = "/Volumes/Macintosh-HD/Test.localized/TrySomething/mylisp/dot/debug_log.txt";
     FILE *fp = fopen(szFile, "ab");
